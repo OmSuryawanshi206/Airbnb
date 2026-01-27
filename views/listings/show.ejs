@@ -1,17 +1,70 @@
 <% layout("layouts/boilerplate") %>
-  <body>
-    <h3>Listing Details :</h3>
-    <ul>
-      <li><%= listing.title %></li>
-      <li><%= listing.description %></li>
-      <li>&#8377; <%= listing.price.toLocaleString("en-IN") %></li>
-      <li><%= listing.location %></li>
-      <li><%= listing.country %></li>
-    </ul>
-    <br />
-    <a href="/listings/<%= listing._id %>/edit">Edit this Listing</a>
-    <br /><br />
-    <form method="POST" action="/listings/<%=listing._id%>?_method=DELETE">
-      <button>Delete this listing</button>
-    </form>
-  </body>
+
+<style>
+  body {
+    background-color: #f7f7f7;
+  }
+
+  
+</style>
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+
+      <div class="show-card">
+        <!-- Image -->
+        <img 
+          src="<%= listing.image.url %>" 
+          alt="listing image"
+          class="show-img"
+        >
+
+        <!-- Content -->
+        <div class="show-content">
+          <h2 class="show-title"><%= listing.title %></h2>
+          <p class="show-location">
+            📍 <%= listing.location %>, <%= listing.country %>
+          </p>
+
+          <p class="text-muted"><%= listing.description %></p>
+
+          <div class="price">
+            ₹ <%= listing.price.toLocaleString("en-IN") %> / night
+          </div>
+
+          <ul class="details-list text-muted">
+            <li>✔ Verified Listing</li>
+            <li>✔ Free Cancellation</li>
+            <li>✔ 24×7 Support</li>
+          </ul>
+
+          <!-- Buttons -->
+          <div class="row action-btns mt-4">
+            <div class="col-md-6 mb-2">
+              <a 
+                href="/listings/<%= listing._id %>/edit" 
+                class="btn btn-outline-dark"
+              >
+                Edit Listing
+              </a>
+            </div>
+
+            <div class="col-md-6 mb-2">
+              <form 
+                method="POST" 
+                action="/listings/<%= listing._id %>?_method=DELETE"
+              >
+                <button class="btn btn-danger">
+                  Delete Listing
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
