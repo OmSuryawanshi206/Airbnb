@@ -19,8 +19,10 @@
           <div class="card-body">
             <h5 class="card-title"><%= listing.title %></h5>
             <p class="card-text">
-              ₹ <%= listing.price.toLocaleString("en-IN") %> / night
+              ₹ <%= listing.price ? listing.price.toLocaleString("en-IN") : "N/A" %> / night
             </p>
+            
+
           </div>
         </div>
 

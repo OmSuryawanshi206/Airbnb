@@ -4,8 +4,6 @@
   body {
     background-color: #f7f7f7;
   }
-
-  
 </style>
 
 <div class="container mt-4">
@@ -13,24 +11,28 @@
     <div class="col-md-8 offset-md-2">
 
       <div class="show-card">
+
         <!-- Image -->
         <img 
-          src="<%= listing.image.url %>" 
+          src="<%= listing.image && listing.image.url ? listing.image.url : 'https://via.placeholder.com/800x400?text=No+Image' %>" 
           alt="listing image"
           class="show-img"
         >
 
         <!-- Content -->
         <div class="show-content">
-          <h2 class="show-title"><%= listing.title %></h2>
+          <h2 class="show-title"><%= listing.title || 'Untitled Listing' %></h2>
+
           <p class="show-location">
-            📍 <%= listing.location %>, <%= listing.country %>
+            📍 <%= listing.location || 'Unknown location' %>, <%= listing.country || 'Unknown country' %>
           </p>
 
-          <p class="text-muted"><%= listing.description %></p>
+          <p class="text-muted">
+            <%= listing.description || 'No description available.' %>
+          </p>
 
           <div class="price">
-            ₹ <%= listing.price.toLocaleString("en-IN") %> / night
+            ₹ <%= listing.price ? listing.price.toLocaleString("en-IN") : "N/A" %> / night
           </div>
 
           <ul class="details-list text-muted">

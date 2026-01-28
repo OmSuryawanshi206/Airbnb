@@ -39,8 +39,12 @@ app.get("/listings", async (req, res) => {
 
 //New Route
 app.get("/listings/new", (req, res) => {
-  res.render("listings/new.ejs");
+  res.render("listings/new.ejs", {
+    listing: {},
+    errors: {}
+  });
 });
+
 
 //Show Route
 app.get("/listings/:id", async (req, res) => {
@@ -51,10 +55,18 @@ app.get("/listings/:id", async (req, res) => {
 
 //Create Route
 app.post("/listings", async (req, res) => {
-  const newListing = new Listing(req.body.listing);
-  await newListing.save();
-  res.redirect("/listings");
+  try {
+    const newListing = new Listing(req.body.listing);
+    await newListing.save();
+    res.redirect("/listings");
+  } catch (err) {
+    res.render("listings/new.ejs", {
+      listing: req.body.listing,
+      errors: err.errors
+    });
+  }
 });
+
 
 //Edit Route
 app.get("/listings/:id/edit", async (req, res) => {
