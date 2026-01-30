@@ -8,17 +8,21 @@ const ejsMate = require("ejs-mate");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
-main()
-  .then(() => {
-    console.log("connected to DB");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
-
 async function main() {
-  await mongoose.connect(MONGO_URL);
+  try {
+    await mongoose.connect(MONGO_URL);
+    console.log("connected to DB");
+
+    app.listen(8080, () => {
+      console.log("server is listening to port 8080");
+    });
+  } catch (err) {
+    console.log("Mongo connection error:", err);
+  }
 }
+
+main();
+
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -104,6 +108,3 @@ app.delete("/listings/:id", async (req, res) => {
 //   res.send("successful testing");
 // });
 
-app.listen(8080, () => {
-  console.log("server is listening to port 8080");
-});
