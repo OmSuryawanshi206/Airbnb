@@ -4,8 +4,8 @@
 
 <div class="row justify-content-center row-cols-1 row-cols-lg-3 row-cols-md-2 g-4">
 
-  <% for (let listing of allListings) { %>
-    
+  <% for (let i = 0; i < allListings.length; i++) { %>
+    <% let listing = allListings[i]; %>
     <div class="col">
       <a href="/listings/<%= listing._id %>" class="text-decoration-none text-dark">
         

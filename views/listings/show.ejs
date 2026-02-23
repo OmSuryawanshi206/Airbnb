@@ -14,7 +14,7 @@
 
         <!-- Image -->
         <img 
-          src="<%= listing.image && listing.image.url ? listing.image.url : 'https://via.placeholder.com/800x400?text=No+Image' %>" 
+          src="<%= listing.image && listing.image.url ? listing.image.url : 'https://www.theexcelsiorhotel.com.ph/wp-content/uploads/2024/01/Best-Luxury-Hotels-in-Manila-The-Excelsior-Hotel.jpg' %>" 
           alt="listing image"
           class="show-img"
         >
@@ -60,9 +60,69 @@
                 <button class="btn btn-danger">
                   Delete Listing
                 </button>
+
+          
+
               </form>
             </div>
+            <div class="col-md-12 mt-3">
+              <a 
+                href="/listings" 
+                class="btn btn-secondary btn-block"
+              >
+                Back to Listings
+              </a>    
           </div>
+          </div>
+          <hr>
+          <div class="mt-8">
+          <h4> Reviews </h4>
+          <form action="/listings/<%= listing._id %>/reviews" method="POST">
+
+  <label>Rating</label>
+  <input 
+    type="range"
+    min="1"
+    max="5"
+    name="review[rating]"
+    required
+  >
+
+  <textarea
+    name="review[comment]"
+    rows="5"
+    placeholder="Write your review here..."
+  ></textarea>
+
+  <button type="submit" class="btn btn-outline-dark">
+    Submit Review
+  </button>
+</form>
+<h4>All Reviews</h4>
+<p><%= listing.reviews && listing.reviews.length > 0 ? '' : 'No reviews yet.' %></p>
+<ul class="list-group"> 
+
+
+  <% if (listing.reviews) { %>
+    <% listing.reviews.forEach(review => { %>
+      <li class="list-group-item">
+        <strong>Rating:</strong> <%= review.rating %> Stars<br>
+        <strong>Comment:</strong> <%= review.comment %>
+        <form method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE">
+        <button type="submit" class="btn btn-danger mt-3">
+          Delete Review
+        </button>
+      </form>
+      </li>
+      
+
+
+    <% }) %>
+  <% } %>
+
+
+
+
 
         </div>
       </div>
