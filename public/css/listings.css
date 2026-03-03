@@ -1,0 +1,50 @@
+.page-title {
+    font-weight: 700;
+    font-size: 2.5rem;
+    color: #ff385c;
+}
+
+.listing-card {
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.listing-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+.listing-img {
+    height: 260px;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.listing-card:hover .listing-img {
+    transform: scale(1.05);
+}
+
+.card-body {
+    padding: 18px;
+}
+
+.price-text {
+    font-weight: 600;
+    color: #222;
+}
+.listing-card {
+    animation: fadeInCard 0.5s ease-in-out;
+}
+
+@keyframes fadeInCard {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

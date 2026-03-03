@@ -1,0 +1,85 @@
+<% layout("layouts/boilerplate") %>
+
+<style>
+  body {
+    background: linear-gradient(135deg, #ff385c, #ff7a59);
+  }
+
+  .error-wrapper {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .error-card {
+    background: white;
+    border-radius: 20px;
+    padding: 50px 40px;
+    text-align: center;
+    max-width: 550px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    animation: fadeIn 0.6s ease-in-out;
+  }
+
+  .error-code {
+    font-size: 80px;
+    font-weight: 800;
+    color: #ff385c;
+    margin-bottom: 10px;
+  }
+
+  .error-title {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .error-message {
+    color: #6c757d;
+    margin-bottom: 25px;
+  }
+
+  .error-btn {
+    border-radius: 30px;
+    padding: 10px 25px;
+    font-weight: 500;
+    transition: 0.3s ease;
+  }
+
+  .error-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<div class="container error-wrapper">
+  <div class="error-card">
+    <div class="error-code">
+      <%= statusCode || 500 %>
+    </div>
+
+    <div class="error-title">
+      <%= statusCode === 404 ? "Oops! Page Not Found" : "Something Went Wrong" %>
+    </div>
+
+    <p class="error-message">
+      <%= message %>
+    </p>
+
+    <a href="/listings" class="btn btn-dark error-btn">
+      Back to Listings
+    </a>
+  </div>
+</div>

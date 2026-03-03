@@ -1,132 +1,136 @@
 <% layout("layouts/boilerplate") %>
+<link rel="stylesheet" href="/css/show.css">
 
-<style>
-  body {
-    background-color: #f7f7f7;
-  }
-</style>
+<div class="container show-wrapper">
+  <div class="show-card">
 
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-md-8 offset-md-2">
+    <!-- Image -->
+    <img 
+      src="<%= listing.image && listing.image.url ? listing.image.url : 'https://www.theexcelsiorhotel.com.ph/wp-content/uploads/2024/01/Best-Luxury-Hotels-in-Manila-The-Excelsior-Hotel.jpg' %>" 
+      alt="listing image"
+      class="show-img"
+    >
 
-      <div class="show-card">
+    <!-- Content -->
+    <div class="show-content">
 
-        <!-- Image -->
-        <img 
-          src="<%= listing.image && listing.image.url ? listing.image.url : 'https://www.theexcelsiorhotel.com.ph/wp-content/uploads/2024/01/Best-Luxury-Hotels-in-Manila-The-Excelsior-Hotel.jpg' %>" 
-          alt="listing image"
-          class="show-img"
-        >
+      <h2 class="show-title">
+        <%= listing.title || 'Untitled Listing' %>
+      </h2>
 
-        <!-- Content -->
-        <div class="show-content">
-          <h2 class="show-title"><%= listing.title || 'Untitled Listing' %></h2>
+      <p class="show-location">
+        📍 <%= listing.location || 'Unknown location' %>, 
+        <%= listing.country || 'Unknown country' %>
+      </p>
 
-          <p class="show-location">
-            📍 <%= listing.location || 'Unknown location' %>, <%= listing.country || 'Unknown country' %>
-          </p>
+      <p class="text-muted">
+        <%= listing.description || 'No description available.' %>
+      </p>
 
-          <p class="text-muted">
-            <%= listing.description || 'No description available.' %>
-          </p>
+      <div class="price">
+        ₹ <%= listing.price ? listing.price.toLocaleString("en-IN") : "N/A" %> / night
+      </div>
 
-          <div class="price">
-            ₹ <%= listing.price ? listing.price.toLocaleString("en-IN") : "N/A" %> / night
-          </div>
+      <ul class="details-list text-muted">
+        <li>✔ Verified Listing</li>
+        <li>✔ Free Cancellation</li>
+        <li>✔ 24×7 Support</li>
+      </ul>
 
-          <ul class="details-list text-muted">
-            <li>✔ Verified Listing</li>
-            <li>✔ Free Cancellation</li>
-            <li>✔ 24×7 Support</li>
-          </ul>
+      <!-- Buttons -->
+      <div class="row action-btns mt-4">
+        <div class="col-md-6 mb-2">
+          <a 
+            href="/listings/<%= listing._id %>/edit" 
+            class="btn btn-outline-dark w-100"
+          >
+            Edit Listing
+          </a>
+        </div>
 
-          <!-- Buttons -->
-          <div class="row action-btns mt-4">
-            <div class="col-md-6 mb-2">
-              <a 
-                href="/listings/<%= listing._id %>/edit" 
-                class="btn btn-outline-dark"
-              >
-                Edit Listing
-              </a>
-            </div>
+        <div class="col-md-6 mb-2">
+          <form 
+            method="POST" 
+            action="/listings/<%= listing._id %>?_method=DELETE"
+          >
+            <button class="btn btn-danger w-100">
+              Delete Listing
+            </button>
+          </form>
+        </div>
 
-            <div class="col-md-6 mb-2">
-              <form 
-                method="POST" 
-                action="/listings/<%= listing._id %>?_method=DELETE"
-              >
-                <button class="btn btn-danger">
-                  Delete Listing
-                </button>
-
-          
-
-              </form>
-            </div>
-            <div class="col-md-12 mt-3">
-              <a 
-                href="/listings" 
-                class="btn btn-secondary btn-block"
-              >
-                Back to Listings
-              </a>    
-          </div>
-          </div>
-          <hr>
-          <div class="mt-8">
-          <h4> Reviews </h4>
-          <form action="/listings/<%= listing._id %>/reviews" method="POST">
-
-  <label>Rating</label>
-  <input 
-    type="range"
-    min="1"
-    max="5"
-    name="review[rating]"
-    required
-  >
-
-  <textarea
-    name="review[comment]"
-    rows="5"
-    placeholder="Write your review here..."
-  ></textarea>
-
-  <button type="submit" class="btn btn-outline-dark">
-    Submit Review
-  </button>
-</form>
-<h4>All Reviews</h4>
-<p><%= listing.reviews && listing.reviews.length > 0 ? '' : 'No reviews yet.' %></p>
-<ul class="list-group"> 
-
-
-  <% if (listing.reviews) { %>
-    <% listing.reviews.forEach(review => { %>
-      <li class="list-group-item">
-        <strong>Rating:</strong> <%= review.rating %> Stars<br>
-        <strong>Comment:</strong> <%= review.comment %>
-        <form method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE">
-        <button type="submit" class="btn btn-danger mt-3">
-          Delete Review
-        </button>
-      </form>
-      </li>
-      
-
-
-    <% }) %>
-  <% } %>
-
-
-
-
-
+        <div class="col-12 mt-3">
+          <a 
+            href="/listings" 
+            class="btn btn-secondary w-100"
+          >
+            Back to Listings
+          </a>
         </div>
       </div>
 
-    </div>
-  </div>
-</div>
+      <hr>
+
+      <!-- Reviews Section -->
+      <h4>Reviews</h4>
+
+      <form action="/listings/<%= listing._id %>/reviews" method="POST" class="mb-4">
+
+        <label class="form-label">Rating</label>
+        <input 
+          type="range"
+          min="1"
+          max="5"
+          name="review[rating]"
+          class="form-range"
+          required
+        >
+
+        <textarea
+          name="review[comment]"
+          rows="4"
+          class="form-control mt-2"
+          placeholder="Write your review here..."
+          required
+        ></textarea>
+
+        <button type="submit" class="btn btn-outline-dark mt-3">
+          Submit Review
+        </button>
+      </form>
+
+      <h5>All Reviews</h5>
+
+      <% if (!listing.reviews || listing.reviews.length === 0) { %>
+        <p class="text-muted">No reviews yet.</p>
+      <% } %>
+
+      <ul class="list-group">
+
+        <% if (listing.reviews) { %>
+          <% listing.reviews.forEach(review => { %>
+
+            <li class="list-group-item">
+              <strong>Rating:</strong> <%= review.rating %> Stars<br>
+              <strong>Comment:</strong> <%= review.comment %>
+
+              <form 
+                method="POST" 
+                action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
+                class="mt-3"
+              >
+                <button type="submit" class="btn btn-danger btn-sm">
+                  Delete Review
+                </button>
+              </form>
+            </li>
+
+          <% }) %>
+        <% } %>
+
+      </ul>
+
+    </div> <!-- show-content -->
+
+  </div> <!-- show-card -->
+</div> <!-- container -->

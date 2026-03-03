@@ -5,18 +5,23 @@ const Listing = require("./models/listing.js");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-const { listingSchema, reviewSchema } = require("./schema.js");
-const Review = require("./models/reviews.js");
+const {listingSchema ,reviewSchema } = require("./schema.js");
+
+const ExpressError = require("./utils/ExpressError.js");
+const listingRoutes = require("./routes/listing.js");
+const reviewRoutes = require("./routes/review.js");
+const wrapAsync = require("./utils/wrapAsync.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
+// ----------------- DATABASE CONNECTION -----------------
 async function main() {
   try {
     await mongoose.connect(MONGO_URL);
-    console.log("connected to DB");
+    console.log("Connected to DB");
 
     app.listen(8080, () => {
-      console.log("server is listening to port 8080");
+      console.log("Server is listening on port 8080");
     });
   } catch (err) {
     console.log("Mongo connection error:", err);
@@ -25,141 +30,45 @@ async function main() {
 
 main();
 
-
+// ----------------- MIDDLEWARE -----------------
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+app.engine("ejs", ejsMate);
+
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
-app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname, "public")));
 
+// ----------------- HOME ROUTE -----------------
 app.get("/", (req, res) => {
   res.render("listings/home.ejs");
 });
 
-const validateListing = (req, res, next) => {
-  const { error } = listingSchema.validate(req.body);
-  if (error) {
-    const errMsg = error.details.map((el) => el.message).join(",");
-    throw new ExpressError(errMsg, 400);
-  } else {
-    next();
+// ----------------- VALIDATION -----------------
+
+// ----------------- REVIEW ROUTES -----------------
+
+app.use("/listings/:id/reviews", reviewRoutes);
+// ----------------- LISTING ROUTES -----------------
+app.use("/listings", listingRoutes);
+
+
+
+// ----------------- 404 handler -----------------
+app.use((req, res, next) => {
+  next(new ExpressError("Page Not Found", 404));
+});
+
+// ----------------- GLOBAL ERROR HANDLER -----------------
+app.use((err, req, res, next) => {
+  // Handle Mongoose CastError (Invalid ObjectId)
+  if (err.name === "CastError") {
+    err = new ExpressError("Invalid ID", 400);
   }
-};
-
-const validateReview = (req, res, next) => {
-  const { error } = reviewSchema.validate(req.body);      
-  if (error) {
-    const errMsg = error.details.map((el) => el.message).join(",");
-    throw new ExpressError(errMsg, 400);
-  } else {
-    next();
-  }
-};
-
-//Index Route
-app.get("/listings", async (req, res) => {
-  const allListings = await Listing.find({});
-  res.render("listings/index.ejs", { allListings });
+  let { statusCode = 500, message = "Something Went Wrong" } = err;
+  console.error("ERROR:", err);
+  res.status(statusCode).render("error.ejs", { 
+  message,
+  statusCode
 });
-
-//New Route
-app.get("/listings/new", (req, res) => {
-  res.render("listings/new.ejs", {
-    listing: {},
-    errors: {}
-  });
 });
-
-
-//Show Route
-app.get("/listings/:id", async (req, res) => {
-  let { id } = req.params;
-
-  const listing = await Listing.findById(id)
-    .populate("reviews");
-
-  res.render("listings/show.ejs", { listing });
-});
-
-
-//Create Route
-app.post("/listings", async (req, res) => {
-  try {
-    const newListing = new Listing(req.body.listing);
-    await newListing.save();
-    res.redirect("/listings");
-  } catch (err) {
-    res.render("listings/new.ejs", {
-      listing: req.body.listing,
-      errors: err.errors
-    });
-  }
-});
-
-
-//Edit Route
-app.get("/listings/:id/edit", async (req, res) => {
-  let { id } = req.params;
-  const listing = await Listing.findById(id);
-  res.render("listings/edit.ejs", { listing });
-});
-
-//Update Route
-app.put("/listings/:id", async (req, res) => {
-  let { id } = req.params;
-  await Listing.findByIdAndUpdate(id, { ...req.body.listing });
-  res.redirect(`/listings/${id}`);
-});
-
-//Delete Route
-app.delete("/listings/:id", async (req, res) => {
-  let { id } = req.params;
-  let deletedListing = await Listing.findByIdAndDelete(id);
-  console.log(deletedListing);
-  res.redirect("/listings");
-});
-
-//review
-app.post("/listings/:id/reviews",validateReview,   async (req, res) => {
-  let { id } = req.params;
-  let listing = await Listing.findById(id);
-
-  let newReview = new Review(req.body.review);
-  listing.reviews.push(newReview);
-
-  await newReview.save();
-  await listing.save();
-
-  res.redirect(`/listings/${id}`);
-});
-
-//Delete Review
-app.delete("/listings/:id/reviews/:reviewId", async (req, res) => {
-  let { id, reviewId } = req.params;
-  await Listing.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
-  await Review.findByIdAndDelete
-(reviewId);
-  res.redirect(`/listings/${id}`);
-});
-
-
-
-
-
-
-
-// app.get("/testListing", async (req, res) => {
-//   let sampleListing = new Listing({
-//     title: "My New Villa",
-//     description: "By the beach",
-//     price: 1200,
-//     location: "Calangute, Goa",
-//     country: "India",
-//   });
-
-//   await sampleListing.save();
-//   console.log("sample was saved");
-//   res.send("successful testing");
-// });
-
