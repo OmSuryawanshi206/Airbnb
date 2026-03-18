@@ -5,6 +5,7 @@ const wrapAsync = require("../utils/wrapAsync.js");
 const { listingSchema } = require("../schema.js");
 const ExpressError = require("../utils/ExpressError.js");
 const Listing = require("../models/listing.js");
+const { isLoggedIn } = require("../middleware.js");
 
 // ---------------- VALIDATION ----------------
 const validateListing = (req, res, next) => {
@@ -19,11 +20,13 @@ const validateListing = (req, res, next) => {
 // ---------------- INDEX ROUTE ----------------
 router.get("/", wrapAsync(async (req, res) => {
   const allListings = await Listing.find({});
+
   res.render("listings/index.ejs", { allListings });
 }));
 
 // ---------------- NEW ROUTE ----------------
-router.get("/new", (req, res) => {
+router.get("/new",isLoggedIn, (req, res) => {
+  
   res.render("listings/new.ejs", {
     listing: {},
     errors: {}
@@ -32,17 +35,18 @@ router.get("/new", (req, res) => {
 
 // ---------------- CREATE ROUTE ----------------
 router.post(
-  "/",
+  "/",isLoggedIn,
   validateListing,
   wrapAsync(async (req, res) => {
     const newListing = new Listing(req.body.listing);
     await newListing.save();
-    res.redirect("/listings");
+    req.flash("success", "Listing created successfully!");
+    return res.redirect("/listings");
   })
 );
 
 // ---------------- EDIT ROUTE ----------------
-router.get("/:id/edit", wrapAsync(async (req, res, next) => {
+router.get("/:id/edit", isLoggedIn, wrapAsync(async (req, res, next) => {
   let { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -76,7 +80,7 @@ router.get("/:id", wrapAsync(async (req, res, next) => {
 }));
 
 // ---------------- UPDATE ROUTE ----------------
-router.put("/:id",
+router.put("/:id",isLoggedIn,
   validateListing,
   wrapAsync(async (req, res, next) => {
     let { id } = req.params;
@@ -92,7 +96,7 @@ router.put("/:id",
 );
 
 // ---------------- DELETE ROUTE ----------------
-router.delete("/:id", wrapAsync(async (req, res, next) => {
+router.delete("/:id", isLoggedIn, wrapAsync(async (req, res, next) => {
   let { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {

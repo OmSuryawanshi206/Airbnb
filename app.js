@@ -5,16 +5,22 @@ const Listing = require("./models/listing.js");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-const {listingSchema ,reviewSchema } = require("./schema.js");
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
+const User = require("./models/User.js");
+const userRoutes = require("./routes/user.js");
 
 const ExpressError = require("./utils/ExpressError.js");
 const listingRoutes = require("./routes/listing.js");
 const reviewRoutes = require("./routes/review.js");
-const wrapAsync = require("./utils/wrapAsync.js");
+const session = require("express-session");
+const flash = require("connect-flash");
+
+const { isLoggedIn } = require("./middleware.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
-// ----------------- DATABASE CONNECTION -----------------
+// ================= DATABASE =================
 async function main() {
   try {
     await mongoose.connect(MONGO_URL);
@@ -27,48 +33,94 @@ async function main() {
     console.log("Mongo connection error:", err);
   }
 }
-
 main();
 
-// ----------------- MIDDLEWARE -----------------
+// ================= VIEW ENGINE =================
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.engine("ejs", ejsMate);
 
+// ================= MIDDLEWARE =================
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 
-// ----------------- HOME ROUTE -----------------
+// ================= SESSION =================
+const sessionOptions = {
+  secret: "mysupersecretcode",
+  resave: false,
+  saveUninitialized: false, // ✅ FIXED
+  cookie: {
+    expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    httpOnly: true,
+  },
+};
+
+app.use(session(sessionOptions));
+app.use(flash());
+
+// ================= PASSPORT =================
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+// ================= FLASH LOCALS =================
+app.use((req, res, next) => {
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  res.locals.currentUser = req.user;
+  next();
+});
+
+// ================= ROUTES =================
+
+// Home
 app.get("/", (req, res) => {
   res.render("listings/home.ejs");
 });
 
-// ----------------- VALIDATION -----------------
+// User routes
+app.use("/", userRoutes);
 
-// ----------------- REVIEW ROUTES -----------------
-
-app.use("/listings/:id/reviews", reviewRoutes);
-// ----------------- LISTING ROUTES -----------------
+// Listing routes
 app.use("/listings", listingRoutes);
 
+// Review routes
+app.use("/listings/:id/reviews", reviewRoutes);
 
+// ================= DEMO USER =================
+app.get("/create-demo-user", async (req, res) => {
+  let fakeUser = new User({
+    username: "demoUser",
+    email: "om@gmail.com",
+  });
 
-// ----------------- 404 handler -----------------
+  let registeredUser = await User.register(fakeUser, "password123");
+
+  res.send("Demo user created with username: demoUser and password: password123");
+});
+
+// ================= 404 =================
 app.use((req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
 });
 
-// ----------------- GLOBAL ERROR HANDLER -----------------
+// ================= ERROR HANDLER =================
 app.use((err, req, res, next) => {
-  // Handle Mongoose CastError (Invalid ObjectId)
   if (err.name === "CastError") {
     err = new ExpressError("Invalid ID", 400);
   }
+
   let { statusCode = 500, message = "Something Went Wrong" } = err;
+
   console.error("ERROR:", err);
-  res.status(statusCode).render("error.ejs", { 
-  message,
-  statusCode
-});
+
+  res.status(statusCode).render("error.ejs", {
+    message,
+    statusCode,
+  });
 });
