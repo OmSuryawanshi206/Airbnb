@@ -2,31 +2,18 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const wrapAsync = require("../utils/wrapAsync.js");
-const { listingSchema } = require("../schema.js");
 const ExpressError = require("../utils/ExpressError.js");
 const Listing = require("../models/listing.js");
-const { isLoggedIn } = require("../middleware.js");
-
-// ---------------- VALIDATION ----------------
-const validateListing = (req, res, next) => {
-  const { error } = listingSchema.validate(req.body);
-  if (error) {
-    const errMsg = error.details.map((el) => el.message).join(",");
-    return next(new ExpressError(errMsg, 400));
-  }
-  next();
-};
+const { isLoggedIn, isOwner, validateListing } = require("../middleware.js");
 
 // ---------------- INDEX ROUTE ----------------
 router.get("/", wrapAsync(async (req, res) => {
   const allListings = await Listing.find({});
-
   res.render("listings/index.ejs", { allListings });
 }));
 
 // ---------------- NEW ROUTE ----------------
-router.get("/new",isLoggedIn, (req, res) => {
-  
+router.get("/new", isLoggedIn, (req, res) => {
   res.render("listings/new.ejs", {
     listing: {},
     errors: {}
@@ -35,31 +22,38 @@ router.get("/new",isLoggedIn, (req, res) => {
 
 // ---------------- CREATE ROUTE ----------------
 router.post(
-  "/",isLoggedIn,
+  "/",
+  isLoggedIn,
   validateListing,
   wrapAsync(async (req, res) => {
     const newListing = new Listing(req.body.listing);
+    newListing.owner = req.user._id;
+
     await newListing.save();
+
     req.flash("success", "Listing created successfully!");
-    return res.redirect("/listings");
+    res.redirect("/listings");
   })
 );
 
 // ---------------- EDIT ROUTE ----------------
-router.get("/:id/edit", isLoggedIn, wrapAsync(async (req, res, next) => {
-  let { id } = req.params;
+router.get("/:id/edit",
+  isLoggedIn,
+  isOwner,
+  wrapAsync(async (req, res, next) => {
+    let { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new ExpressError("Invalid Listing ID", 400));
-  }
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(new ExpressError("Invalid Listing ID", 400));
+    }
 
-  const listing = await Listing.findById(id);
+    const listing = await Listing.findById(id);
 
-  if (!listing) {
-    return next(new ExpressError("Listing Not Found", 404));
-  }
+    if (!listing) {
+      return next(new ExpressError("Listing Not Found", 404));
+    }
 
-  res.render("listings/edit.ejs", { listing });
+    res.render("listings/edit.ejs", { listing });
 }));
 
 // ---------------- SHOW ROUTE ----------------
@@ -70,7 +64,9 @@ router.get("/:id", wrapAsync(async (req, res, next) => {
     return next(new ExpressError("Invalid Listing ID", 400));
   }
 
-  const listing = await Listing.findById(id).populate("reviews");
+  const listing = await Listing.findById(id)
+    .populate("owner")
+    .populate("reviews");
 
   if (!listing) {
     return next(new ExpressError("Listing Not Found", 404));
@@ -80,7 +76,9 @@ router.get("/:id", wrapAsync(async (req, res, next) => {
 }));
 
 // ---------------- UPDATE ROUTE ----------------
-router.put("/:id",isLoggedIn,
+router.put("/:id",
+  isLoggedIn,
+  isOwner,
   validateListing,
   wrapAsync(async (req, res, next) => {
     let { id } = req.params;
@@ -91,21 +89,25 @@ router.put("/:id",isLoggedIn,
 
     await Listing.findByIdAndUpdate(id, { ...req.body.listing });
 
+    req.flash("success", "Listing updated!");
     res.redirect(`/listings/${id}`);
-  })
-);
+}));
 
 // ---------------- DELETE ROUTE ----------------
-router.delete("/:id", isLoggedIn, wrapAsync(async (req, res, next) => {
-  let { id } = req.params;
+router.delete("/:id",
+  isLoggedIn,
+  isOwner,
+  wrapAsync(async (req, res, next) => {
+    let { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new ExpressError("Invalid Listing ID", 400));
-  }
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(new ExpressError("Invalid Listing ID", 400));
+    }
 
-  await Listing.findByIdAndDelete(id);
+    await Listing.findByIdAndDelete(id);
 
-  res.redirect("/listings");
+    req.flash("success", "Listing deleted!");
+    res.redirect("/listings");
 }));
 
 module.exports = router;

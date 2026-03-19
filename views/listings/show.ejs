@@ -17,12 +17,13 @@
       <h2 class="show-title">
         <%= listing.title || 'Untitled Listing' %>
       </h2>
+      <%= listing.owner ? `👤 Hosted by ${listing.owner.username}` : '' %>
+      <br>
 
       <p class="show-location">
         📍 <%= listing.location || 'Unknown location' %>, 
         <%= listing.country || 'Unknown country' %>
       </p>
-
       <p class="text-muted">
         <%= listing.description || 'No description available.' %>
       </p>
@@ -38,6 +39,8 @@
       </ul>
 
       <!-- Buttons -->
+
+      <% if(currentUser && listing.owner && currentUser._id.equals(listing.owner._id)) { %>
       <div class="row action-btns mt-4">
         <div class="col-md-6 mb-2">
           <a 
@@ -70,6 +73,7 @@
       </div>
 
       <hr>
+        <% } %>
 
       <!-- Reviews Section -->
       <h4>Reviews</h4>
