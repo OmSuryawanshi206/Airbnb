@@ -17,13 +17,16 @@
       <h2 class="show-title">
         <%= listing.title || 'Untitled Listing' %>
       </h2>
-      <%= listing.owner ? `👤 Hosted by ${listing.owner.username}` : '' %>
-      <br>
+
+      <% if (listing.owner) { %>
+        <%= `👤 Hosted by ${listing.owner.username}` %>
+      <% } %>
 
       <p class="show-location">
         📍 <%= listing.location || 'Unknown location' %>, 
         <%= listing.country || 'Unknown country' %>
       </p>
+
       <p class="text-muted">
         <%= listing.description || 'No description available.' %>
       </p>
@@ -32,30 +35,16 @@
         ₹ <%= listing.price ? listing.price.toLocaleString("en-IN") : "N/A" %> / night
       </div>
 
-      <ul class="details-list text-muted">
-        <li>✔ Verified Listing</li>
-        <li>✔ Free Cancellation</li>
-        <li>✔ 24×7 Support</li>
-      </ul>
-
       <!-- Buttons -->
-
-      <% if(currentUser && listing.owner && currentUser._id.equals(listing.owner._id)) { %>
       <div class="row action-btns mt-4">
         <div class="col-md-6 mb-2">
-          <a 
-            href="/listings/<%= listing._id %>/edit" 
-            class="btn btn-outline-dark w-100"
-          >
+          <a href="/listings/<%= listing._id %>/edit" class="btn btn-outline-dark w-100">
             Edit Listing
           </a>
         </div>
 
         <div class="col-md-6 mb-2">
-          <form 
-            method="POST" 
-            action="/listings/<%= listing._id %>?_method=DELETE"
-          >
+          <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE">
             <button class="btn btn-danger w-100">
               Delete Listing
             </button>
@@ -63,45 +52,37 @@
         </div>
 
         <div class="col-12 mt-3">
-          <a 
-            href="/listings" 
-            class="btn btn-secondary w-100"
-          >
+          <a href="/listings" class="btn btn-secondary w-100">
             Back to Listings
           </a>
         </div>
       </div>
 
       <hr>
-        <% } %>
 
       <!-- Reviews Section -->
-      <h4>Reviews</h4>
+      <% if (currentUser) { %>
+        <h3 class="mb-3">Leave a Review</h3>
 
-      <form action="/listings/<%= listing._id %>/reviews" method="POST" class="mb-4">
+        <form action="/listings/<%= listing._id %>/reviews" method="POST" class="mb-4">
+          <label class="form-label">Rating</label>
+          <input type="range" min="1" max="5" name="review[rating]" class="form-range" required>
 
-        <label class="form-label">Rating</label>
-        <input 
-          type="range"
-          min="1"
-          max="5"
-          name="review[rating]"
-          class="form-range"
-          required
-        >
+          <textarea
+            name="review[comment]"
+            rows="4"
+            class="form-control mt-2"
+            placeholder="Write your review here..."
+            required
+          ></textarea>
 
-        <textarea
-          name="review[comment]"
-          rows="4"
-          class="form-control mt-2"
-          placeholder="Write your review here..."
-          required
-        ></textarea>
-
-        <button type="submit" class="btn btn-outline-dark mt-3">
-          Submit Review
-        </button>
-      </form>
+          <button type="submit" class="btn btn-outline-dark mt-3">
+            Submit Review
+          </button>
+        </form>
+      <% } else { %>
+        <p class="text-muted">Please <a href="/login">log in</a> to leave a review.</p>
+      <% } %>
 
       <h5>All Reviews</h5>
 
@@ -110,11 +91,10 @@
       <% } %>
 
       <ul class="list-group">
-
         <% if (listing.reviews) { %>
           <% listing.reviews.forEach(review => { %>
-
             <li class="list-group-item">
+              <strong>Reviewer:</strong> <%= review.author.username %><br>
               <strong>Rating:</strong> <%= review.rating %> Stars<br>
               <strong>Comment:</strong> <%= review.comment %>
 
@@ -128,13 +108,11 @@
                 </button>
               </form>
             </li>
-
           <% }) %>
         <% } %>
-
       </ul>
 
-    </div> <!-- show-content -->
-
-  </div> <!-- show-card -->
-</div> <!-- container -->
+    </div>
+  </div>
+</div>
+<p>ID: <%= listing._id %></p>

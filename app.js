@@ -76,6 +76,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// 🔴 TEMP ROUTE TO DELETE ALL REVIEWS
+const Review = require("./models/reviews.js");  // ✅ ADD THIS AT TOP (if not already)
+
+app.get("/delete-all-reviews", async (req, res) => {
+    await Review.deleteMany({});
+    await Listing.updateMany({}, { $set: { reviews: [] } });
+
+    res.send("All reviews deleted");
+});
+
 // ================= ROUTES =================
 
 // Home

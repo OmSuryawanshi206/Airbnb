@@ -58,20 +58,21 @@ router.get("/:id/edit",
 
 // ---------------- SHOW ROUTE ----------------
 router.get("/:id", wrapAsync(async (req, res, next) => {
-  let { id } = req.params;
-
+  const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return next(new ExpressError("Invalid Listing ID", 400));
   }
-
   const listing = await Listing.findById(id)
     .populate("owner")
-    .populate("reviews");
-
+    .populate({
+      path: "reviews",
+      populate: {
+        path: "author",
+      },
+    });
   if (!listing) {
     return next(new ExpressError("Listing Not Found", 404));
   }
-
   res.render("listings/show.ejs", { listing });
 }));
 

@@ -2,18 +2,14 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
 const passport = require("passport");
-const { returnTo } = require("../middleware.js");
-
 
 // ================== SIGNUP ==================
 
-// Signup Page
 router.get("/signup", (req, res) => {
     res.render("users/signup.ejs");
 });
 
-// Signup Logic
-router.post("/signup", returnTo, async (req, res, next) => {
+router.post("/signup", async (req, res, next) => {
     try {
         const { username, email, password } = req.body;
 
@@ -24,11 +20,7 @@ router.post("/signup", returnTo, async (req, res, next) => {
             if (err) return next(err);
 
             req.flash("success", "Welcome to Wanderlust!");
-
-            const redirectUrl = res.locals.returnTo || "/listings";
-            delete req.session.returnTo;
-
-            res.redirect(redirectUrl);
+            res.redirect("/listings");
         });
 
     } catch (err) {
@@ -40,22 +32,28 @@ router.post("/signup", returnTo, async (req, res, next) => {
 
 // ================== LOGIN ==================
 
-// Login Page
 router.get("/login", (req, res) => {
     res.render("users/login.ejs");
 });
 
-// Login Logic
 router.post("/login",
-    returnTo,
     passport.authenticate("local", {
         failureFlash: true,
         failureRedirect: "/login"
     }),
     (req, res) => {
+
+        console.log("RETURN TO URL:", req.session.returnTo);
+
         req.flash("success", "Welcome back!");
 
-        const redirectUrl = res.locals.returnTo || "/listings";
+        let redirectUrl = req.session.returnTo;
+
+        // ✅ SAFE fallback
+        if (!redirectUrl || redirectUrl.includes("undefined")) {
+            redirectUrl = "/listings";
+        }
+
         delete req.session.returnTo;
 
         res.redirect(redirectUrl);
@@ -73,6 +71,5 @@ router.get("/logout", (req, res, next) => {
         res.redirect("/listings");
     });
 });
-
 
 module.exports = router;
